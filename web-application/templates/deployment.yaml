@@ -1,0 +1,54 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+spec:
+  revisionHistoryLimit: 5
+  replicas: 1
+  selector:
+    matchLabels:
+        app: {{ .Values.app.name }}
+  template:
+    metadata:
+        labels:
+            app: {{ .Values.app.name }}
+    spec:
+        {{- if .Values.app.volume.enabled }}
+        volumes:
+        - name: {{ .Values.app.volume.name }}
+          gcePersistentDisk:
+            pdName: {{ .Values.app.volume.pdName }}
+            fsType: {{ .Values.app.volume.fsType }}
+        {{- end }}
+        containers:
+        - name: app
+          image: {{ .Values.app.image }}
+          imagePullPolicy: Always
+          {{- if .Values.app.env.enabled }}
+          envFrom:
+          - secretRef:
+               name: {{ .Values.app.env.secretName }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.app.port }}
+              scheme: HTTP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.app.port }}
+              scheme: HTTP
+          ports:
+            - containerPort: {{ .Values.app.port }}
+              protocol: TCP
+          {{- if .Values.app.volume.enabled }}
+          volumeMounts:
+            - name: {{ .Values.app.volume.name }}
+              mountPath: {{ .Values.app.volume.mountPath }}  
+          {{- end }}
+        imagePullSecrets:
+          - name: {{ .Values.app.imagePullSecrets }}
+      
+      
