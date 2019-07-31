@@ -33,15 +33,15 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: {{ .Values.app.port }}
+              port: {{ .Values.app.targetPort }}
               scheme: HTTP
           readinessProbe:
             httpGet:
               path: /
-              port: {{ .Values.app.port }}
+              port: {{ .Values.app.targetPort }}
               scheme: HTTP
           ports:
-            - containerPort: {{ .Values.app.port }}
+            - containerPort: {{ .Values.app.targetPort }}
               protocol: TCP
           {{- if .Values.app.volume.enabled }}
           volumeMounts:
